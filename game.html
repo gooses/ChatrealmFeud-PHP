@@ -1,0 +1,255 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>feud</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+ <!-- <script src="../jquery.quickfit.js" type="text/javascript" charset="utf-8"></script>  -->
+
+	<script>
+
+	function doQuestionCheck(){
+		$.getJSON( "activequestion.php", { qid: $qid } )
+		.done(function( json ) {
+	    	//console.log( "JSON Data: " + json.users[ 3 ].name );
+	    	if(json.id){ // itsa new question. create the board.
+	    		$qid = json.id;
+	    		$(".question").html(json.question);
+	    		$.each(json.answers, function (key, data) {
+	    			$(".answer").each(function( index ) {
+	    				if($(this).attr('num') == key){
+	    					if(data.answer.length > 0){
+	    						$(this).find('.card').find('.front').css("background-image", 'url("assets/feud3.png")').css("opacity", '1'); //opacity: 0; 
+	    					}else{
+	    						$(this).find('.card').find('.front').css("background-image", 'url("assets/feud4.png")').css("opacity", '0');
+	    					}
+	    					$(this).find('.card').removeClass('flipped');
+	    					$(this).attr('flipped', 'false');
+	    					$(this).find('.card').find('.back').find('.a').html(data.answer);
+                $(this).find('.card').find('.back').find('.c').html(data._count);
+                //$(this).find('.card').find('.back').find('.a').quickfit({ max: 50, min:18,  truncate: false,width: 220 });
+                //$(this).find('.card').find('.back').find('.a').textFit({maxFontSize: 120});
+                $anblock = $(this).find('.card').find('.back').find('.a')
+                $textlength = ($anblock.text()).length;
+                if ($textlength >8) {$(this).find('.card').find('.back').find('.a').css({ 'font-size': '30px' });};
+                if ($textlength >16) {$(this).find('.card').find('.back').find('.a').css({ 'font-size': '27px' });};
+                if ($textlength >40) {$(this).find('.card').find('.back').find('.a').css({ 'font-size': '21px' });};
+           
+	    					return false; // we found it, why loop any more?
+	    				}
+	    			});
+$('.answerTable').show();
+
+	    		})
+         //delete the x cookie.
+
+	    	}else{ // flip what needs to be flipped. (and x's too)
+	    	//	console.log("flipstuff");
+	    		$.each(json, function (key, data) {
+	    			//console.log(data);
+	    			$num = key;
+	    			$flip = data;
+	    			$(".answer").each(function( index ) {
+	    				if($(this).attr('num') == $num && $flip == 1 && $(this).attr('flipped')!= 'true'){
+	    					//console.log("flip attempted");
+	    					$(this).find('.card').addClass('flipped');
+	    					$(this).attr('flipped', 'true'); 
+                // revealSound = document.createElement('audio');
+  //revealSound.setAttribute('src', '../reveal.mp3');
+	    					revealSound.play();
+	    					return false; // we found it, why loop any more?
+	    				}else if($(this).attr('num') == $num && $flip == 0 && $(this).attr('flipped')!= 'false'){
+	    					$(this).find('.card').removeClass('flipped');
+	    					$(this).attr('flipped', 'false');
+
+	    				}
+	    			});
+
+            if(key == "X" && data.split("|")[1] != $wrong && data !=0){
+              console.log(data.split("|")[1]);
+             // alert("new x yo");
+      $xxxdiv = $('<div/>', {class: 'zoom-in'}).appendTo('body');
+      $('.zoom-in').css("width", $xxxdiv.width()*data.split("|")[0]).show().addClass('dozoom').delay( 1800 ).fadeOut( "slow", function() {
+      //opener.$('.zoom-in').removeClass('dozoom').addClass('zoom-in');
+      $(this).remove();
+    });
+        xxxSound.play();
+        //add x to cookies. just in case page is refreshed.
+              $wrong = data.split("|")[1];//data;
+            }
+	    		})
+
+	    	}
+	    })
+	    .fail(function( jqxhr, textStatus, error ) {
+	    	console.log(error);
+	    });
+	    
+	}
+	$(document).ready(function(){
+		$qid = -1;
+    $wrong = 0;
+    $loops = 0;
+        xxxSound = document.createElement('audio');
+  xxxSound.setAttribute('src', 'assets/instantrapairhorn.mp3');
+  revealSound = document.createElement('audio');
+  revealSound.setAttribute('src', 'assets/reveal.mp3');
+		var timer = setInterval(doQuestionCheck, 2000)
+		
+
+	})
+	</script>
+	<style>
+body{
+  /*background-image: url('http://ak.picdn.net/shutterstock/videos/5237729/preview/stock-footage-an-abstract-loopable-game-show-background-with-flashing-lights-in-k-ultrahd.jpg');
+  background-image: url('http://www.clickwallpapers.com/wp-content/uploads/2014/04/Background-1.jpg');*/
+  background-image: url('assets/chatrealmFeudBG.png');
+}
+	.answerTable {
+    margin: 0 auto;
+    text-align: center;
+    display: none;
+	}
+	.answer {
+    height: 80px;
+    width: 300px;
+    text-align: center;
+    vertical-align: middle;
+
+      -webkit-perspective: 800;
+      perspective: 800;
+
+    position: relative;
+    margin: 50px auto;
+
+}
+.zoom-in{
+   
+     -webkit-transform : scale(0);
+     transform : scale(0);
+  background-image: url("assets/family_feud_x2.png");
+  width:239px;
+  height:300px;
+  margin: 15px auto;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  z-index: 100;
+}
+.dozoom{
+     -webkit-transform : scale(1);
+  transition : 0.7s linear all;
+}
+
+
+.question{
+  margin: 0 auto;
+  text-align: center;
+}
+
+.card.flipped {
+  -webkit-transform: rotatex(-180deg);
+  transform: rotatex(-180deg);
+}
+.card {
+  width: 100%;
+  height: 100%;
+  -webkit-transform-style: preserve-3d;
+  -webkit-transition: 0.5s;
+  transform-style: preserve-3d;
+  transition: 0.5s;
+  
+}
+
+.card .front {
+	background-image: url("assets/feud4.png");
+  position: absolute;
+  z-index: 1;
+  /*text-indent:-1000;*/
+    color: white;
+    cursor: pointer;
+      width: 100%;
+  height: 100%;
+  position: absolute;
+  -webkit-backface-visibility: hidden ;
+  z-index: 2;
+    font-family: Georgia;
+    font-size: 3em;
+    text-align: center;
+    line-height: 80px;
+}
+.card .back {
+  -webkit-transform: rotatex(-180deg);
+  transform: rotatex(-180deg);
+   /* background: blue;*/
+   background-image: url("assets/feud-flipped.png");
+    color: white;
+    cursor: pointer;
+      position: absolute;
+  -webkit-backface-visibility: hidden ;
+  backface-visibility: hidden ;
+  z-index: 2;
+    font-family: Georgia;
+    font-size: 3em;
+    text-align: center;
+    /*line-height: 50px;*/
+     height: 80px;
+     width: 300px;
+     display: table;
+
+     /*line-height: 80px;*/
+    
+}
+.back .a{
+  width:220px;
+  height:30px;
+  padding-left: 20px;
+  display: table-cell;
+  vertical-align: middle;
+}
+.back .c{
+  height:30px;
+  padding-right: 10px;
+  padding-bottom: 5px;
+  display: table-cell;
+  vertical-align: middle;
+}
+</style>
+</head>
+<body>
+<img src="assets/chatrealmFeudLogo-600pxweb.png" style="margin:0 auto; display: block;" />
+<h2 class="question">Game Loading, Please wait.</h2>
+<table border= "0" class= "answerTable">
+    <tr>
+        <td class="answer" num="1">
+        	<div class="card"><div class= "front">1</div><div class= "back"><span class="a"></span><span class="c">555</span></div></div>
+        </td>
+        <td class="answer" num="5">
+        	<div class="card"><div class= "front">5</div><div class= "back"><span class="a"></span><span class="c"></span></div></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="answer" num="2">
+        	<div class="card"><div class= "front">2</div><div class= "back"><span class="a"></span><span class="c"></span></div></div>
+        </td>
+        <td class="answer" num="6">
+        <div class="card"><div class= "front">6</div><div class= "back"><span class="a"></span><span class="c"></span></div></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="answer" num="3">
+           <div class="card"><div class= "front">3</div><div class= "back"><span class="a"></span><span class="c"></span></div></div>
+        </td>
+        <td class="answer" num="7">
+            <div class="card"><div class= "front">7</div><div class= "back"><span class="a"></span><span class="c"></span></div></div>
+        </td>
+    </tr>
+    <tr>
+        <td class="answer" num="4">
+            <div class="card"><div class= "front">4</div><div class= "back"><span class="a"></span><span class="c"></span></div></div>
+        </td>
+        <td class="answer" num="8">
+        	<div class="card"><div class= "front">8</div><div class= "back"><span class="a"></span><span class="c"></span></div></div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
